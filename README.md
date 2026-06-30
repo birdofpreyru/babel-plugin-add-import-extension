@@ -1,5 +1,9 @@
 # babel-plugin-add-import-extension ![Lint and test](https://ci.prieb.me/api/badges/karl/babel-plugin-add-import-extension/status.svg?branch=main)
 
+[![Latest NPM Release](https://img.shields.io/npm/v/@dr.pogodin/babel-plugin-transform-assets.svg)](https://www.npmjs.com/package/@dr.pogodin/babel-plugin-transform-assets)
+[![NPM Downloads](https://img.shields.io/npm/dm/@dr.pogodin/babel-plugin-transform-assets.svg)](https://www.npmjs.com/package/@dr.pogodin/babel-plugin-transform-assets)
+[![GitHub Repo stars](https://img.shields.io/github/stars/birdofpreyru/babel-plugin-transform-assets?style=social)](https://github.com/birdofpreyru/babel-plugin-transform-assets)
+
 Back to Github :)
 This project started on Github and I moved that to SourceHut, but I found that this project had so much more interactions and was so much more reachable for other devs on Github that I decide to move that back. Sadly I deleted the old repo and we lost some issues.
 

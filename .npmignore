@@ -1,0 +1,7 @@
+.*
+*.config.mjs
+__coverage__
+__tests__
+dr.pogodin-babel-plugin-add-import-extension-*.tgz
+src/*
+tsconfig.json

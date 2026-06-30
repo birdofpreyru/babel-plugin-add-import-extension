@@ -1,7 +1,8 @@
-/* global describe, test, expect */
-const babel = require('@babel/core')
-const syntaxTypescript = require('@babel/plugin-syntax-typescript')
-const plugin = require('../src/plugin.js')
+import { transformSync } from '@babel/core';
+import syntaxTypescript from '@babel/plugin-syntax-typescript';
+import { describe, expect, test } from '@jest/globals';
+
+import plugin from '../src/plugin';
 
 const importStatements = `
 import { oneBackLevel } from '..'
@@ -36,7 +37,7 @@ import replacer_another, { replacer_otherImport } from './lib/something.ts'
 import replacer_anotherTest, { replacer_otherImportTest } from './lib/something.test.ts'
 import * as replacer_Something from './lib/something.ts'
 import * as replacer_SomethingTest from './lib/something.test.ts'
-`
+`;
 
 const exportStatements = `
 export { oneBackLevel } from '..'
@@ -63,12 +64,12 @@ export * as replacer_anotherModule from './lib/something.ts'
 export * as replacer_anotherModuleTest from './lib/something.test.ts'
 export * as replacer_something2 from './lib/something.ts'
 export * as replacer_something2Test from './lib/something.test.ts'
-`
+`;
 
 const typeOnlyExports = `
 export type { NamedType } from './lib/something'
 export type { NamedTypeTest } from './lib/something.test'
-`
+`;
 
 const typeOnlyImports = `
 import type DefaultType from './lib/something'
@@ -77,7 +78,7 @@ import type { NamedType } from './lib/something'
 import type { NamedTypeTest } from './lib/something.test'
 import type * as AllTypes from './lib/something'
 import type * as AllTypesTest from './lib/something.test'
-`
+`;
 
 describe('Replace', () => {
   test.each`
@@ -92,14 +93,19 @@ describe('Replace', () => {
     ${'replace custom extension to import not observed'}  | ${importStatements} | ${'jsx'}     | ${true}      | ${['js', 'ts', 'tsx', 'mjs', 'cjs']}
     ${'replace custom extension to export'}               | ${exportStatements} | ${'jsx'}     | ${true}      | ${['js', 'ts', 'jsx', 'tsx', 'mjs', 'cjs']}
     ${'replace custom extension to export not observed'}  | ${exportStatements} | ${'jsx'}     | ${true}      | ${['js', 'ts', 'tsx', 'mjs', 'cjs']}
-  `('should add the $type statements', ({ statements, extension, replace, observedScriptExtensions }) => {
-    const { code } = babel.transformSync(statements, {
-      plugins: [[plugin, { extension, replace, observedScriptExtensions }]],
-      filename: ''
-    })
+  `('should add the $type statements', ({
+    extension, observedScriptExtensions, replace, statements,
+  }) => {
+    // eslint-disable-next-line jest/no-conditional-in-test
+    if (typeof statements !== 'string') throw Error('Internal error');
 
-    expect(code).toMatchSnapshot()
-  })
+    const res = transformSync(statements, {
+      filename: '',
+      plugins: [[plugin, { extension, observedScriptExtensions, replace }]],
+    });
+
+    expect(res?.code).toMatchSnapshot();
+  });
 
   test.each`
     type                                      | statements         | extension    | replace       | observedScriptExtensions
@@ -109,12 +115,20 @@ describe('Replace', () => {
     ${'skip type-only imports not observed'}  | ${typeOnlyImports} | ${'jsx'}     | ${undefined}  | ${['js', 'ts', 'tsx', 'mjs', 'cjs']}
     ${'skip type-only exports'}               | ${typeOnlyExports} | ${'jsx'}     | ${true}       | ${['js', 'ts', 'jsx', 'tsx', 'mjs', 'cjs']}
     ${'skip type-only exports not observed'}  | ${typeOnlyExports} | ${'jsx'}     | ${true}       | ${['js', 'ts', 'tsx', 'mjs', 'cjs']}
-  `('should $type', ({ statements, extension, replace, observedScriptExtensions }) => {
-    const { code } = babel.transformSync(statements, {
-      plugins: [syntaxTypescript, [plugin, { extension, replace, observedScriptExtensions }]],
-      filename: ''
-    })
+  `('should $type', ({
+    extension, observedScriptExtensions, replace, statements,
+  }) => {
+    // eslint-disable-next-line jest/no-conditional-in-test
+    if (typeof statements !== 'string') throw Error('Internal error');
 
-    expect(code).toMatchSnapshot()
-  })
-})
+    const res = transformSync(statements, {
+      filename: '',
+      plugins: [
+        syntaxTypescript,
+        [plugin, { extension, observedScriptExtensions, replace }],
+      ],
+    });
+
+    expect(res?.code).toMatchSnapshot();
+  });
+});
