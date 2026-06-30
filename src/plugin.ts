@@ -20,7 +20,7 @@ function getOptions(state: PluginPass<OptionsT>): Required<OptionsT> {
   return {
     extension: state.opts.extension ?? 'js',
     observedScriptExtensions: state.opts.observedScriptExtensions
-      ?? ['js', 'ts', 'jsx', 'tsx', 'mjs', 'cjs'],
+      ?? ['js', 'json', 'ts', 'jsx', 'tsx', 'mjs', 'cjs'],
     replace: false,
   };
 }
@@ -57,7 +57,6 @@ function keepPath(path: string, ops: Required<OptionsT>): boolean {
         ? extname(path) === `.${ops.extension}`
         : !!extname(path).length
           && (isActiveExtension(path, ops.observedScriptExtensions) || extname(path) === `.${ops.extension}`)
-          && extname(path) === `.${ops.extension}`
     );
 }
 

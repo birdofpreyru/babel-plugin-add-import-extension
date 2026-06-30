@@ -52,8 +52,15 @@ plugins: [
 ];
 ```
 
+**TODO**: The documentation should be re-writtent.
+
+**NOTE**: Without `replace` flag set, the `observedScriptExtensions` array
+effectively specifies recognized extensions to which nothing more should be
+added (and with that `replace` flag these recognized extensions are replaced
+by the target one).
+
 To be able to handle file with a *.* in the filename (e.g *component.style.ts*) the plugin is configured
-to only handle a certain set of file extensions. If needed you can adjust the default of `['js','ts','jsx','tsx']` 
+to only handle a certain set of file extensions. If needed you can adjust the default of `['js', 'json', 'ts', 'jsx', 'tsx', 'mjs', 'cjs']`
 by changing the `observedScriptExtensions` option
 
 ```js
