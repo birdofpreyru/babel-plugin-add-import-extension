@@ -148,11 +148,11 @@ export default function plugin(): PluginObject<PluginPass<OptionsT>> {
                   makePath(importPath, state.file.opts.filename, ops),
                 ),
                 path.node.options,
-              )
-            )
+              ),
+            );
           }
         }
-      }
+      },
     },
   };
 }
