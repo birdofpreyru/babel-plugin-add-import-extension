@@ -4,6 +4,7 @@ import { dirname, extname, resolve } from 'node:path';
 import type { PluginObject, PluginPass } from '@babel/core';
 
 import {
+  callExpression,
   exportAllDeclaration,
   exportNamedDeclaration,
   importDeclaration,
@@ -87,6 +88,29 @@ export default function plugin(): PluginObject<PluginPass<OptionsT>> {
   return {
     name: 'add-import-extension',
     visitor: {
+      CallExpression(path, state) {
+        const { node } = path;
+        if (node.callee.type === 'Import') {
+          const [arg] = node.arguments;
+          if (arg?.type === 'StringLiteral') {
+            const exportPath = arg.value;
+            const ops = getOptions(state);
+            if (!keepPath(exportPath, ops)) {
+              path.replaceWith(
+                callExpression(
+                  node.callee,
+                  [
+                    stringLiteral(
+                      makePath(exportPath, state.file.opts.filename, ops),
+                    ),
+                    ...node.arguments.slice(1),
+                  ],
+                ),
+              );
+            }
+          }
+        }
+      },
       ExportAllDeclaration(path, state) {
         const exportPath = path.node.source.value;
         const ops = getOptions(state);

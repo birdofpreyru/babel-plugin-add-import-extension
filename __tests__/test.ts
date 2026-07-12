@@ -111,6 +111,36 @@ describe('Replace', () => {
   });
 
   test.each`
+    type                                                  | statements          | extension    | replace      | observedScriptExtensions
+    ${'default extension to import'}                      | ${importStatements} | ${undefined} | ${undefined} | ${['js', 'ts', 'jsx', 'tsx', 'mjs', 'cjs']}
+    ${'custom extension to import'}                       | ${importStatements} | ${'jsx'}     | ${undefined} | ${['js', 'ts', 'jsx', 'tsx', 'mjs', 'cjs']}
+    ${'custom extension to import not observed'}          | ${importStatements} | ${'jsx'}     | ${undefined} | ${['js', 'ts', 'tsx', 'mjs', 'cjs']}
+    ${'custom extension to export'}                       | ${exportStatements} | ${'jsx'}     | ${undefined} | ${['js', 'ts', 'jsx', 'tsx', 'mjs', 'cjs']}
+    ${'custom extension to export not observed'}          | ${exportStatements} | ${'jsx'}     | ${undefined} | ${['js', 'ts', 'tsx', 'mjs', 'cjs']}
+    ${'replace default extension to import'}              | ${importStatements} | ${undefined} | ${true}      | ${['js', 'ts', 'jsx', 'tsx', 'mjs', 'cjs']}
+    ${'replace custom extension to import'}               | ${importStatements} | ${'jsx'}     | ${true}      | ${['js', 'ts', 'jsx', 'tsx', 'mjs', 'cjs']}
+    ${'replace custom extension to import not observed'}  | ${importStatements} | ${'jsx'}     | ${true}      | ${['js', 'ts', 'tsx', 'mjs', 'cjs']}
+    ${'replace custom extension to export'}               | ${exportStatements} | ${'jsx'}     | ${true}      | ${['js', 'ts', 'jsx', 'tsx', 'mjs', 'cjs']}
+    ${'replace custom extension to export not observed'}  | ${exportStatements} | ${'jsx'}     | ${true}      | ${['js', 'ts', 'tsx', 'mjs', 'cjs']}
+  `('Legacy Babel Mode: should add the $type statements', ({
+    extension, observedScriptExtensions, replace, statements,
+  }) => {
+    // eslint-disable-next-line jest/no-conditional-in-test
+    if (typeof statements !== 'string') throw Error('Internal error');
+
+    const res = transformSync(statements, {
+      filename: '',
+      parserOpts: { createImportExpressions: false },
+      plugins: [
+        '@babel/syntax-typescript',
+        [plugin, { extension, observedScriptExtensions, replace }],
+      ],
+    });
+
+    expect(res?.code).toMatchSnapshot();
+  });
+
+  test.each`
     type                                      | statements         | extension    | replace       | observedScriptExtensions
     ${'skip type-only imports'}               | ${typeOnlyImports} | ${undefined} | ${undefined}  | ${['js', 'ts', 'jsx', 'tsx', 'mjs', 'cjs']}
     ${'skip type-only exports'}               | ${typeOnlyExports} | ${undefined} | ${true}       | ${['js', 'ts', 'jsx', 'tsx', 'mjs', 'cjs']}
