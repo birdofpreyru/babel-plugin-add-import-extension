@@ -7,6 +7,7 @@ import {
   exportAllDeclaration,
   exportNamedDeclaration,
   importDeclaration,
+  importExpression,
   stringLiteral,
 } from '@babel/types';
 
@@ -135,6 +136,23 @@ export default function plugin(): PluginObject<PluginPass<OptionsT>> {
           );
         }
       },
+      ImportExpression(path, state) {
+        const { source } = path.node;
+        if (source.type === 'StringLiteral') {
+          const importPath = source.value;
+          const ops = getOptions(state);
+          if (!keepPath(importPath, ops)) {
+            path.replaceWith(
+              importExpression(
+                stringLiteral(
+                  makePath(importPath, state.file.opts.filename, ops),
+                ),
+                path.node.options,
+              )
+            )
+          }
+        }
+      }
     },
   };
 }

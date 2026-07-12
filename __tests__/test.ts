@@ -36,6 +36,10 @@ import replacer_another, { replacer_otherImport } from './lib/something.ts'
 import replacer_anotherTest, { replacer_otherImportTest } from './lib/something.test.ts'
 import * as replacer_Something from './lib/something.ts'
 import * as replacer_SomethingTest from './lib/something.test.ts'
+
+async function test() {
+  const dynamic = await import('./lib/something');
+}
 `;
 
 const exportStatements = `

@@ -95,7 +95,10 @@ import replacer_anotherImportTest from './lib/something.test.ts';
 import replacer_another, { replacer_otherImport } from './lib/something.ts';
 import replacer_anotherTest, { replacer_otherImportTest } from './lib/something.test.ts';
 import * as replacer_Something from './lib/something.ts';
-import * as replacer_SomethingTest from './lib/something.test.ts';"
+import * as replacer_SomethingTest from './lib/something.test.ts';
+async function test() {
+  const dynamic = await import("./lib/something.jsx");
+}"
 `;
 
 exports[`Replace should add the custom extension to import statements 1`] = `
@@ -129,7 +132,10 @@ import replacer_anotherImportTest from './lib/something.test.ts';
 import replacer_another, { replacer_otherImport } from './lib/something.ts';
 import replacer_anotherTest, { replacer_otherImportTest } from './lib/something.test.ts';
 import * as replacer_Something from './lib/something.ts';
-import * as replacer_SomethingTest from './lib/something.test.ts';"
+import * as replacer_SomethingTest from './lib/something.test.ts';
+async function test() {
+  const dynamic = await import("./lib/something.jsx");
+}"
 `;
 
 exports[`Replace should add the default extension to import statements 1`] = `
@@ -163,7 +169,10 @@ import replacer_anotherImportTest from './lib/something.test.ts';
 import replacer_another, { replacer_otherImport } from './lib/something.ts';
 import replacer_anotherTest, { replacer_otherImportTest } from './lib/something.test.ts';
 import * as replacer_Something from './lib/something.ts';
-import * as replacer_SomethingTest from './lib/something.test.ts';"
+import * as replacer_SomethingTest from './lib/something.test.ts';
+async function test() {
+  const dynamic = await import("./lib/something.js");
+}"
 `;
 
 exports[`Replace should add the replace custom extension to export not observed statements 1`] = `
@@ -261,7 +270,10 @@ import replacer_anotherImportTest from './lib/something.test.ts';
 import replacer_another, { replacer_otherImport } from './lib/something.ts';
 import replacer_anotherTest, { replacer_otherImportTest } from './lib/something.test.ts';
 import * as replacer_Something from './lib/something.ts';
-import * as replacer_SomethingTest from './lib/something.test.ts';"
+import * as replacer_SomethingTest from './lib/something.test.ts';
+async function test() {
+  const dynamic = await import("./lib/something.jsx");
+}"
 `;
 
 exports[`Replace should add the replace custom extension to import statements 1`] = `
@@ -295,7 +307,10 @@ import replacer_anotherImportTest from './lib/something.test.ts';
 import replacer_another, { replacer_otherImport } from './lib/something.ts';
 import replacer_anotherTest, { replacer_otherImportTest } from './lib/something.test.ts';
 import * as replacer_Something from './lib/something.ts';
-import * as replacer_SomethingTest from './lib/something.test.ts';"
+import * as replacer_SomethingTest from './lib/something.test.ts';
+async function test() {
+  const dynamic = await import("./lib/something.jsx");
+}"
 `;
 
 exports[`Replace should add the replace default extension to import statements 1`] = `
@@ -329,7 +344,10 @@ import replacer_anotherImportTest from './lib/something.test.ts';
 import replacer_another, { replacer_otherImport } from './lib/something.ts';
 import replacer_anotherTest, { replacer_otherImportTest } from './lib/something.test.ts';
 import * as replacer_Something from './lib/something.ts';
-import * as replacer_SomethingTest from './lib/something.test.ts';"
+import * as replacer_SomethingTest from './lib/something.test.ts';
+async function test() {
+  const dynamic = await import("./lib/something.js");
+}"
 `;
 
 exports[`Replace should skip type-only exports 1`] = `
