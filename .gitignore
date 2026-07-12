@@ -1,4 +1,5 @@
 .eslintcache
 __coverage__/
+build/
 node_modules/
 dr.pogodin-babel-plugin-add-import-extension-*.tgz

@@ -1,5 +1,4 @@
 import { transformSync } from '@babel/core';
-import syntaxTypescript from '@babel/plugin-syntax-typescript';
 import { describe, expect, test } from '@jest/globals';
 
 import plugin from '../src/plugin';
@@ -124,7 +123,7 @@ describe('Replace', () => {
     const res = transformSync(statements, {
       filename: '',
       plugins: [
-        syntaxTypescript,
+        '@babel/syntax-typescript',
         [plugin, { extension, observedScriptExtensions, replace }],
       ],
     });
