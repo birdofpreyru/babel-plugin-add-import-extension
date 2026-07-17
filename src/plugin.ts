@@ -33,7 +33,7 @@ function isNodeModule(path: string): boolean {
   }
 
   try {
-    require.resolve(path);
+    import.meta.resolve(path);
     return true;
   } catch (e) {
     if (e instanceof Error && 'code' in e && e.code === 'MODULE_NOT_FOUND') {

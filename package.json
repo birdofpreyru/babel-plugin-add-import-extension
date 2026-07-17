@@ -1,6 +1,6 @@
 {
   "name": "@dr.pogodin/babel-plugin-add-import-extension",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "A babel plugin to add extension on project modules imports",
   "funding": {
     "type": "github",
