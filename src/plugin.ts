@@ -27,13 +27,6 @@ function getOptions(state: PluginPass<OptionsT>): Required<OptionsT> {
   };
 }
 
-function isActiveExtension(
-  path: string,
-  observedScriptExtensions: string[],
-): boolean {
-  return observedScriptExtensions.includes(extname(path).replace(/[^a-z]/, ''));
-}
-
 function isNodeModule(path: string): boolean {
   if (path.startsWith('.') || path.startsWith('/')) {
     return false;
@@ -51,37 +44,48 @@ function isNodeModule(path: string): boolean {
   }
 }
 
-function keepPath(path: string, ops: Required<OptionsT>): boolean {
-  return !path.startsWith('.')
-    || isNodeModule(path)
-    || (
-      ops.replace && (isActiveExtension(path, ops.observedScriptExtensions) || extname(path) === `.${ops.extension}`)
-        ? extname(path) === `.${ops.extension}`
-        : !!extname(path).length
-          && (isActiveExtension(path, ops.observedScriptExtensions) || extname(path) === `.${ops.extension}`)
-    );
-}
-
-function makePath(
+function transform(
   path: string,
-  filename: string | undefined,
+  state: PluginPass<OptionsT>,
   ops: Required<OptionsT>,
 ): string {
-  if (filename === undefined) throw Error('Missing filename');
+  if (isNodeModule(path)) return path;
 
-  const dirPath = resolve(dirname(filename), path);
+  if (state.filename === undefined) throw Error('Missing filename');
+  const absPath = resolve(dirname(state.filename), path);
 
-  const hasModuleExt = extname(path).length
-    && isActiveExtension(path, ops.observedScriptExtensions);
+  let ext: string | undefined;
 
-  const newModuleName = hasModuleExt
-    ? path.slice(0, -extname(path).length) : path;
+  // If `path` points to an existing file system object, we can reliably get
+  // its extension.
+  if (existsSync(absPath)) ext = extname(absPath);
 
-  if (existsSync(dirPath) && lstatSync(dirPath).isDirectory()) {
-    return `${path}${newModuleName.endsWith('/') ? '' : '/'}index.${ops.extension}`;
+  // Otherwise (this is the legacy logic) we consider as the extension
+  // the result of extname(absPath), provided it is contained in
+  // the ops.observedScriptExtensions array.
+  else {
+    const e = extname(absPath);
+    if (e && (
+      ops.observedScriptExtensions.includes(e.slice(1))
+      || e === `.${ops.extension}`
+    )) ext = e;
   }
 
-  return `${newModuleName}.${ops.extension}`;
+  if (ext === `.${ops.extension}`) return path;
+
+  if (ext && (
+    !ops.replace || !ops.observedScriptExtensions.includes(ext.slice(1)))
+  ) return path;
+
+  let res = ext ? path.slice(0, -ext.length) : path;
+  if (existsSync(absPath) && lstatSync(absPath).isDirectory()) {
+    if (!res.endsWith('/')) res += '/';
+    res += 'index';
+  }
+
+  res += `.${ops.extension}`;
+
+  return res;
 }
 
 export default function plugin(): PluginObject<PluginPass<OptionsT>> {
@@ -95,14 +99,15 @@ export default function plugin(): PluginObject<PluginPass<OptionsT>> {
           if (arg?.type === 'StringLiteral') {
             const exportPath = arg.value;
             const ops = getOptions(state);
-            if (!keepPath(exportPath, ops)) {
+
+            const newPath = transform(exportPath, state, ops);
+
+            if (newPath !== exportPath) {
               path.replaceWith(
                 callExpression(
                   node.callee,
                   [
-                    stringLiteral(
-                      makePath(exportPath, state.file.opts.filename, ops),
-                    ),
+                    stringLiteral(newPath),
                     ...node.arguments.slice(1),
                   ],
                 ),
@@ -114,14 +119,13 @@ export default function plugin(): PluginObject<PluginPass<OptionsT>> {
       ExportAllDeclaration(path, state) {
         const exportPath = path.node.source.value;
         const ops = getOptions(state);
-        if (path.node.exportKind !== 'type' && !keepPath(exportPath, ops)) {
-          path.replaceWith(
-            exportAllDeclaration(
-              stringLiteral(
-                makePath(exportPath, state.file.opts.filename, ops),
-              ),
-            ),
-          );
+        if (path.node.exportKind !== 'type') {
+          const newPath = transform(exportPath, state, ops);
+          if (newPath !== exportPath) {
+            path.replaceWith(
+              exportAllDeclaration(stringLiteral(newPath)),
+            );
+          }
         }
       },
       ExportNamedDeclaration(path, state) {
@@ -130,17 +134,17 @@ export default function plugin(): PluginObject<PluginPass<OptionsT>> {
         if (
           exportPath !== undefined
           && path.node.exportKind !== 'type'
-          && !keepPath(exportPath, ops)
         ) {
-          path.replaceWith(
-            exportNamedDeclaration(
-              path.node.declaration,
-              path.node.specifiers,
-              stringLiteral(
-                makePath(exportPath, state.file.opts.filename, ops),
+          const newPath = transform(exportPath, state, ops);
+          if (newPath !== exportPath) {
+            path.replaceWith(
+              exportNamedDeclaration(
+                path.node.declaration,
+                path.node.specifiers,
+                stringLiteral(newPath),
               ),
-            ),
-          );
+            );
+          }
         }
       },
       ImportDeclaration(path, state) {
@@ -148,16 +152,16 @@ export default function plugin(): PluginObject<PluginPass<OptionsT>> {
         const ops = getOptions(state);
         if (
           path.node.importKind !== 'type'
-          && !keepPath(importPath, ops)
         ) {
-          path.replaceWith(
-            importDeclaration(
-              path.node.specifiers,
-              stringLiteral(
-                makePath(importPath, state.file.opts.filename, ops),
+          const newPath = transform(importPath, state, ops);
+          if (newPath !== importPath) {
+            path.replaceWith(
+              importDeclaration(
+                path.node.specifiers,
+                stringLiteral(newPath),
               ),
-            ),
-          );
+            );
+          }
         }
       },
       ImportExpression(path, state) {
@@ -165,12 +169,11 @@ export default function plugin(): PluginObject<PluginPass<OptionsT>> {
         if (source.type === 'StringLiteral') {
           const importPath = source.value;
           const ops = getOptions(state);
-          if (!keepPath(importPath, ops)) {
+          const newPath = transform(importPath, state, ops);
+          if (newPath !== importPath) {
             path.replaceWith(
               importExpression(
-                stringLiteral(
-                  makePath(importPath, state.file.opts.filename, ops),
-                ),
+                stringLiteral(newPath),
                 path.node.options,
               ),
             );
