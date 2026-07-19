@@ -12,7 +12,7 @@ import {
   stringLiteral,
 } from '@babel/types';
 
-type OptionsT = {
+export type OptionsT = {
   extension?: string;
   observedScriptExtensions?: string[];
   replace?: boolean;
