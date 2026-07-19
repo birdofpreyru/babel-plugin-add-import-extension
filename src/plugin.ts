@@ -32,6 +32,12 @@ function isNodeModule(path: string): boolean {
     return false;
   }
 
+  // Paths starting with # seem to refer to named exports from the current
+  // ESM node package (though, I can't find the exact specs on that point);
+  // anyway, for our purposes we should treat them as module names, i.e. we
+  // should not append anything to them.
+  if (path.startsWith('#')) return true;
+
   try {
     import.meta.resolve(path);
     return true;
