@@ -14,7 +14,19 @@ import {
 
 export type OptionsT = {
   extension?: string;
+  replacements?: Record<string, string>;
+
+  /**
+   * @deprecated In the current implementation this option is confusing,
+   * as it both allows to automatically consider any last .smth piece of
+   * the pathname to be considered as the extension, and also commands
+   * to replace such extensions when `replace` flag is set. I think (a) these
+   * should be two different settings; (b) not sure it is really necessary
+   * to have these, now that `replacements` option is added.
+   */
   observedScriptExtensions?: string[];
+
+  /** @deprecated */
   replace?: boolean;
 };
 
@@ -24,6 +36,7 @@ function getOptions(state: PluginPass<OptionsT>): Required<OptionsT> {
     observedScriptExtensions: state.opts.observedScriptExtensions
       ?? ['js', 'json', 'ts', 'jsx', 'tsx', 'mjs', 'cjs'],
     replace: false,
+    replacements: {},
   };
 }
 
@@ -78,6 +91,10 @@ function transform(
   }
 
   if (ext === `.${ops.extension}`) return path;
+
+  if (ext && ops.replacements[ext]) {
+    return `${path.slice(0, -ext.length)}.${ops.replacements.ext}`;
+  }
 
   if (ext && (
     !ops.replace || !ops.observedScriptExtensions.includes(ext.slice(1)))

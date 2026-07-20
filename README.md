@@ -6,14 +6,16 @@
 [![GitHub Repo stars](https://img.shields.io/github/stars/birdofpreyru/babel-plugin-add-import-extension?style=social)](https://github.com/birdofpreyru/babel-plugin-add-import-extension)
 [![Dr. Pogodin Studio](.README/logo-dr-pogodin-studio.svg)](https://dr.pogodin.studio/docs/babel-plugin-add-import-extension)
 
-A plugin to add extensions to import and export declarations. It is very useful
-when you use Typescript with Babel and don't want to explicity import or export
-module with extensions.
+This plugin adds (and/or replaces) extensions of import and export declarations,
+which helps to transform a codebase using extensionless imports (alike CommonJS-,
+bundler-like module resolution) to fully ECMAScript (ES) compliant modules with
+[mandatory file extensions](https://nodejs.org/docs/latest/api/esm.html#mandatory-file-extensions).
 
-This is a fork of the original [babel-plugin-add-import-extension] (which looks
-non-maintained since 2021), de-spaghettified, upgraded to the latest [Babel v8],
-and migrated to TypeScript. Otherwise (as of its v2.0.0), it works the same as
-the original library.
+It started as a fork of the original [babel-plugin-add-import-extension] (which
+looks non-maintained since 2021). It was de-spaghettified, upgraded to the latest
+[Babel v8], and migrated to TypeScript; and as of its v2.0.0 it worked just
+the same as the original library. Subsequent versions got a handful of changes,
+to better serve the plugin purpose stated above.
 
 [![Sponsor](.README/sponsor.svg)](https://github.com/sponsors/birdofpreyru)
 
@@ -22,6 +24,8 @@ the original library.
 [<img width=36 src="https://avatars.githubusercontent.com/u/20144632?s=36" />](https://github.com/birdofpreyru)
 
 ## How to install:
+
+**BEWARE**: **TODO**: _Documentation below is inherited from the original plugin, it should be re-written, to better cover exact behavior of the plugin, and available options. It will be done, once I am happy with the plugin features, and consider it stable._
 
 ```sh
 # using npm
@@ -51,8 +55,6 @@ plugins: [
   ["@dr.pogodin/add-import-extension", { extension: "jsx", replace: true }], // will replace the "observedScriptExtensions" [see below] to jsx
 ];
 ```
-
-**TODO**: The documentation should be re-writtent.
 
 **NOTE**: Without `replace` flag set, the `observedScriptExtensions` array
 effectively specifies recognized extensions to which nothing more should be
