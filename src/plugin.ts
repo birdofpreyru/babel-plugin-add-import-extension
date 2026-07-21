@@ -14,29 +14,17 @@ import {
 
 export type OptionsT = {
   extension?: string;
+  replaceExtensions?: string[];
   replacements?: Record<string, string>;
-
-  /**
-   * @deprecated In the current implementation this option is confusing,
-   * as it both allows to automatically consider any last .smth piece of
-   * the pathname to be considered as the extension, and also commands
-   * to replace such extensions when `replace` flag is set. I think (a) these
-   * should be two different settings; (b) not sure it is really necessary
-   * to have these, now that `replacements` option is added.
-   */
-  observedScriptExtensions?: string[];
-
-  /** @deprecated */
-  replace?: boolean;
+  virtualExtensions?: string[];
 };
 
 function getOptions(state: PluginPass<OptionsT>): Required<OptionsT> {
   return {
     extension: state.opts.extension ?? 'js',
-    observedScriptExtensions: state.opts.observedScriptExtensions
-      ?? ['js', 'json', 'ts', 'jsx', 'tsx', 'mjs', 'cjs'],
-    replace: false,
-    replacements: {},
+    replaceExtensions: state.opts.replaceExtensions ?? [],
+    replacements: state.opts.replacements ?? {},
+    virtualExtensions: state.opts.virtualExtensions ?? [],
   };
 }
 
@@ -44,12 +32,6 @@ function isNodeModule(path: string): boolean {
   if (path.startsWith('.') || path.startsWith('/')) {
     return false;
   }
-
-  // Paths starting with # seem to refer to named exports from the current
-  // ESM node package (though, I can't find the exact specs on that point);
-  // anyway, for our purposes we should treat them as module names, i.e. we
-  // should not append anything to them.
-  if (path.startsWith('#')) return true;
 
   try {
     import.meta.resolve(path);
@@ -68,10 +50,20 @@ function transform(
   state: PluginPass<OptionsT>,
   ops: Required<OptionsT>,
 ): string {
-  if (isNodeModule(path)) return path;
+  // Specifiers starting with # are resolved by TypeScript through the imports
+  // field of the nearest ancestor package.json; they should not be modified.
+  if (isNodeModule(path) || path.startsWith('#')) return path;
 
-  if (state.filename === undefined) throw Error('Missing filename');
-  const absPath = resolve(dirname(state.filename), path);
+  const absPath = state.filename
+    ? resolve(dirname(state.filename), path)
+    : resolve(path);
+
+  if (existsSync(absPath) && lstatSync(absPath).isDirectory()) {
+    let res = path;
+    if (!res.endsWith('/')) res += '/';
+    res += `index.${ops.extension}`;
+    return res;
+  }
 
   let ext: string | undefined;
 
@@ -84,28 +76,20 @@ function transform(
   // the ops.observedScriptExtensions array.
   else {
     const e = extname(absPath);
-    if (e && (
-      ops.observedScriptExtensions.includes(e.slice(1))
+    if (e && (ops.virtualExtensions.includes(e.slice(1))
       || e === `.${ops.extension}`
     )) ext = e;
   }
 
   if (ext === `.${ops.extension}`) return path;
 
-  if (ext && ops.replacements[ext]) {
-    return `${path.slice(0, -ext.length)}.${ops.replacements.ext}`;
+  if (ext && ops.replacements[ext.slice(1)]) {
+    return `${path.slice(0, -ext.length)}.${ops.replacements[ext.slice(1)]}`;
   }
 
-  if (ext && (
-    !ops.replace || !ops.observedScriptExtensions.includes(ext.slice(1)))
-  ) return path;
+  if (ext && !ops.replaceExtensions.includes(ext.slice(1))) return path;
 
   let res = ext ? path.slice(0, -ext.length) : path;
-  if (existsSync(absPath) && lstatSync(absPath).isDirectory()) {
-    if (!res.endsWith('/')) res += '/';
-    res += 'index';
-  }
-
   res += `.${ops.extension}`;
 
   return res;
